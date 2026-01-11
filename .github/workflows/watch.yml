@@ -8,22 +8,24 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+
     steps:
-      - name: リポジトリを取得
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Pythonを準備
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
-      - name: ライブラリを入れる
+      - name: Install libraries
         run: |
           pip install requests beautifulsoup4
 
-      - name: サイト更新チェック
+      - name: Run checker
         env:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
         run: |
           python check.py
+
