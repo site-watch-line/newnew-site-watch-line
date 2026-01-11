@@ -1,24 +1,29 @@
-name: Site Watch
+name: Site Update Checker
 
 on:
-  schedule:
-    - cron: "*/10 * * * *"   # 10分おき
   workflow_dispatch:
+  schedule:
+    - cron: "*/20 * * * *"
 
 jobs:
-  watch:
+  check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
-      - name: Install
-        run: pip install -r requirements.txt
+      - name: ライブラリを入れる
+        run: |
+          pip install requests beautifulsoup4
 
-      - name: Run checker
+      - name: サイト更新チェック
         env:
-          LINE_TOKEN: ${{ secrets.LINE_TOKEN }}
-        run: python check.py
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+        run: |
+          python check.py
