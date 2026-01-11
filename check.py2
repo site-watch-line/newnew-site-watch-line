@@ -1,3 +1,4 @@
+print("checker start")
 import requests
 import hashlib
 import os
@@ -65,4 +66,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+print("checker end")
 
