@@ -1,0 +1,68 @@
+import requests
+import hashlib
+import os
+from bs4 import BeautifulSoup
+
+URL = "https://pointlessjourney.jp/"
+HASH_FILE = "site_hash.txt"
+
+def get_site_hash():
+    r = requests.get(URL, timeout=20)
+    r.raise_for_status()
+    soup = BeautifulSoup(r.text, "html.parser")
+    text = soup.get_text()
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+def load_old_hash():
+    if not os.path.exists(HASH_FILE):
+        return None
+    with open(HASH_FILE, "r") as f:
+        return f.read().strip()
+
+def save_hash(h):
+    with open(HASH_FILE, "w") as f:
+        f.write(h)
+
+def notify_line(message):
+    token = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
+    user_id = os.environ.get("LINE_USER_ID")
+    if not token or not user_id:
+        print("LINE設定がありません")
+        return
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "to": user_id,
+        "messages": [
+            {"type": "text", "text": message}
+        ]
+    }
+    requests.post(
+        "https://api.line.me/v2/bot/message/push",
+        headers=headers,
+        json=payload,
+        timeout=10
+    )
+
+def main():
+    new_hash = get_site_hash()
+    old_hash = load_old_hash()
+
+    if old_hash is None:
+        save_hash(new_hash)
+        print("初回チェック：ハッシュ保存")
+        return
+
+    if new_hash != old_hash:
+        save_hash(new_hash)
+        notify_line("🔔 pointlessjourney.jp が更新されました！")
+        print("更新検知 → LINE送信")
+    else:
+        print("変更なし")
+
+if __name__ == "__main__":
+    main()
+
